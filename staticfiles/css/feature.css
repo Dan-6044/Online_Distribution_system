@@ -1,0 +1,45 @@
+/* feature.css */
+
+.featured-services {
+    background-color: #f8f9fa; /* Light background for contrast */
+    padding: 60px 0; /* Vertical padding */
+}
+
+.featured-services .service-item {
+    background-color: #fff; /* White background for service items */
+    border-radius: 8px; /* Rounded corners */
+    padding: 20px; /* Inner padding */
+    transition: transform 0.3s, box-shadow 0.3s; /* Animation effects */
+}
+
+.featured-services .service-item:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Shadow effect */
+}
+
+.featured-services .icon {
+    font-size: 40px; /* Size of the icons */
+    color: #007bff; /* Color for icons */
+    margin-right: 15px; /* Spacing between icon and text */
+}
+
+.featured-services .title {
+    font-size: 20px; /* Title size */
+    color: #333; /* Dark text color */
+    margin-bottom: 10px; /* Space below the title */
+}
+
+.featured-services .description {
+    font-size: 14px; /* Description size */
+    color: #555; /* Grey text color */
+    margin-bottom: 15px; /* Space below the description */
+}
+
+.featured-services .readmore {
+    color: #007bff; /* Link color */
+    font-weight: bold; /* Bold text for links */
+}
+
+.featured-services .readmore:hover {
+    text-decoration: underline; /* Underline effect on hover */
+}

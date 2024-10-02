@@ -1,0 +1,79 @@
+/* Main FAQ container styles */
+.faq {
+    padding-bottom: 40px; /* Adjust the value as needed */
+}
+
+.faq .faq-container {
+    margin-top: 15px;
+}
+
+/* Individual FAQ item styles */
+.faq .faq-container .faq-item {
+    position: relative;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9; /* Light background color for the box */
+    border: 1px solid #ddd; /* Border for the box */
+    border-radius: 8px; /* Rounded corners */
+    overflow: hidden;
+    transition: 0.3s;
+    cursor: pointer; /* Pointer cursor to indicate clickable */
+}
+
+/* Last item margin adjustment */
+.faq .faq-container .faq-item:last-child {
+    margin-bottom: 0;
+}
+
+/* FAQ question styling */
+.faq .faq-container .faq-item h3 {
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 24px;
+    margin: 0;
+    transition: 0.3s;
+}
+
+/* Active item background color */
+.faq .faq-container .faq-active {
+    background-color: #e0f7fa; /* Light cyan background for active items */
+}
+
+/* FAQ content styles */
+.faq .faq-container .faq-item .faq-content {
+    display: none; /* Hidden by default */
+    padding: 10px;
+    background-color: #e0f7fa; /* Background for the content when shown */
+    border-radius: 5px; /* Rounded corners */
+    margin-top: 10px; /* Space between question and answer */
+}
+
+/* Icon styles */
+.faq .faq-container .faq-icon {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 20px;
+    transition: 0.3s;
+    color: #007bff; /* Blue color for the icon */
+}
+
+/* Toggle icon styles */
+.faq .faq-container .faq-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+/* Rotate icon when active */
+.faq .faq-container .faq-active .faq-toggle {
+    transform: rotate(90deg); /* Rotate icon when active */
+}
+
+/* Hover effects */
+.faq .faq-container .faq-item:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Shadow on hover */
+    background-color: #f1f1f1; /* Slightly darker background on hover */
+}

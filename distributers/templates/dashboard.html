@@ -1,0 +1,337 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <title>Your Orders</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <style>
+        /* Chatbox Styles */
+        .chatbox-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            max-height: 500px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chatbox-header {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .chatbox-body {
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            display: none; /* Initially hidden */
+        }
+
+        .chatbox-footer {
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            display: none; /* Initially hidden */
+        }
+
+        .chatbox-footer input {
+            flex-grow: 1;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 10px;
+        }
+
+        .chatbox-footer button {
+            margin-left: 10px;
+        }
+
+        .message {
+            margin-bottom: 10px;
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message .message-text {
+            display: inline-block;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .message.user .message-text {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .message.bot .message-text {
+            background-color: #f1f1f1;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+    {% include 'navbar1.html' %}
+
+    <div class="container mt-5">
+        <h1 class="mb-6">Your Orders</h1>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Location</th>
+                    <th>Phone</th>
+                    <th>Total Amount</th>
+                    <th>Payment Status</th>
+                    <th>Order Items</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.location }}</td>
+                        <td>{{ order.phone }}</td>
+                        <td>{{ order.total_amount }}</td>
+                        <td>
+                            {% if order.payment_status %}
+                                Paid
+                            {% else %}
+                                Pending
+                            {% endif %}
+                        </td>
+                        <td>
+                            <ul>
+                                {% for item in order.items.all %}
+                                    <li>
+                                        {{ item.product_name }} - {{ item.quantity }} pcs at {{ item.price }} - 
+                                        {% if item.delivery_status %}
+                                            Delivered
+                                        {% else %}
+                                            Pending
+                                        {% endif %}
+                                    </li>
+                                {% empty %}
+                                    <li>No items in this order.</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td>
+                            {% if not order.payment_status %}
+                                <button type="button" class="btn btn-primary" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#paymentModal" 
+                                    data-order-id="{{ order.id }}">
+                                    Pay Now
+                                </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7">No orders found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalLabel">Complete Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="error-messages" class="alert alert-danger d-none"></div> <!-- Error messages container -->
+                    <form id="paymentForm" method="post" action="{% url 'complete_payment' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="order_id" id="order-id">
+                        <div class="mb-3">
+                            <label for="payment_method" class="form-label">Payment Method</label>
+                            <select class="form-select" name="payment_method" id="payment-method" required>
+                                <option value="">Select...</option>
+                                <option value="card">Card</option>
+                                <option value="mpesa">M-Pesa</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Card details input -->
+                        <div id="card-details" class="d-none">
+                            <div class="mb-3">
+                                <label for="card-number" class="form-label">Card Number</label>
+                                <input type="text" class="form-control" name="card_number" id="card-number">
+                            </div>
+                            <div class="mb-3">
+                                <label for="expiry-date" class="form-label">Expiry Date (MM/YY)</label>
+                                <input type="text" class="form-control" name="expiry_date" id="expiry-date">
+                            </div>
+                            <div class="mb-3">
+                                <label for="cvv" class="form-label">CVV</label>
+                                <input type="text" class="form-control" name="cvv" id="cvv">
+                            </div>
+                        </div>
+
+                        <!-- M-Pesa code input -->
+                        <div id="mpesa-details" class="d-none">
+                            <div class="mb-3">
+                                <label for="mpesa-code" class="form-label">M-Pesa Code</label>
+                                <input type="text" class="form-control" name="mpesa_code" id="mpesa-code">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Complete Payment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chatbox -->
+    <div class="chatbox-container" id="chatbox">
+        <div class="chatbox-header" id="chatbox-header">
+            Chat with Support
+        </div>
+        <div class="chatbox-body" id="chatbox-body">
+            <!-- Chat messages will appear here -->
+        </div>
+        <div class="chatbox-footer" id="chatbox-footer">
+            <input type="text" id="chatInput" placeholder="Type your message...">
+            <button type="button" class="btn btn-primary" id="sendMessageButton">Send</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Event listener for showing the payment modal
+        var paymentModal = document.getElementById('paymentModal');
+        paymentModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget; // Button that triggered the modal
+            var orderId = button.getAttribute('data-order-id'); // Extract order ID from data attribute
+            var orderIdInput = document.getElementById('order-id');
+            orderIdInput.value = orderId; // Set the order ID input value
+    
+            // Reset visibility of inputs
+            document.getElementById('card-details').classList.add('d-none');
+            document.getElementById('mpesa-details').classList.add('d-none');
+
+            // Clear any previous error messages
+            var errorMessagesDiv = document.getElementById('error-messages');
+            errorMessagesDiv.innerHTML = ''; 
+            errorMessagesDiv.classList.add('d-none'); 
+        });
+    
+        // Event listener for changing payment method
+        document.getElementById('payment-method').addEventListener('change', function () {
+            var selectedValue = this.value; // Get the selected payment method
+            if (selectedValue === 'card') {
+                document.getElementById('card-details').classList.remove('d-none'); // Show card details
+                document.getElementById('mpesa-details').classList.add('d-none'); // Hide M-Pesa details
+            } else if (selectedValue === 'mpesa') {
+                document.getElementById('mpesa-details').classList.remove('d-none'); // Show M-Pesa details
+                document.getElementById('card-details').classList.add('d-none'); // Hide card details
+            } else {
+                document.getElementById('card-details').classList.add('d-none'); // Hide card details
+                document.getElementById('mpesa-details').classList.add('d-none'); // Hide M-Pesa details
+            }
+        });
+    
+        // AJAX form submission
+        document.getElementById('paymentForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent the default form submission
+    
+            var formData = new FormData(this); // Create FormData object from the form
+            var errorMessagesDiv = document.getElementById('error-messages'); // Div to display errors
+            errorMessagesDiv.innerHTML = ''; // Clear previous error messages
+            errorMessagesDiv.classList.add('d-none'); // Hide error messages initially
+    
+            // Send the form data using fetch API
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Indicate that the request is AJAX
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'error') {
+                    // Show errors if there are any
+                    errorMessagesDiv.innerHTML = ''; // Clear previous messages
+                    for (var key in data.errors) {
+                        var errorMessage = data.errors[key];
+                        errorMessagesDiv.innerHTML += '<p>' + errorMessage + '</p>'; // Append error messages
+                    }
+                    errorMessagesDiv.classList.remove('d-none'); // Show the error messages div
+                } else if (data.status === 'success') {
+                    // Close modal and reload the page upon success
+                    var modal = bootstrap.Modal.getInstance(paymentModal); // Get modal instance
+                    modal.hide(); // Close modal
+                    location.reload(); // Reload the page to update payment status
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                errorMessagesDiv.innerHTML = '<p>An unexpected error occurred. Please try again.</p>'; // Display generic error
+                errorMessagesDiv.classList.remove('d-none'); // Show the error messages div
+            });
+        });
+         // Chatbox toggle functionality
+         var chatboxHeader = document.getElementById('chatbox-header');
+         var chatboxBody = document.getElementById('chatbox-body');
+         var chatboxFooter = document.getElementById('chatbox-footer');
+         var chatInput = document.getElementById('chatInput');
+         var sendMessageButton = document.getElementById('sendMessageButton');
+ 
+         chatboxHeader.addEventListener('click', function () {
+             var isBodyVisible = chatboxBody.style.display !== 'none';
+             chatboxBody.style.display = isBodyVisible ? 'none' : 'block';
+             chatboxFooter.style.display = isBodyVisible ? 'none' : 'flex';
+         });
+ 
+         // Send message functionality
+         sendMessageButton.addEventListener('click', function () {
+             var message = chatInput.value.trim();
+             if (message) {
+                 addMessage('user', message);
+                 chatInput.value = ''; // Clear the input
+                 simulateBotResponse(); // Simulate bot response
+             }
+         });
+ 
+         // Add message to chatbox
+         function addMessage(sender, text) {
+             var messageDiv = document.createElement('div');
+             messageDiv.classList.add('message', sender);
+             var messageText = document.createElement('div');
+             messageText.classList.add('message-text');
+             messageText.textContent = text;
+             messageDiv.appendChild(messageText);
+             chatboxBody.appendChild(messageDiv);
+             chatboxBody.scrollTop = chatboxBody.scrollHeight; // Scroll to the bottom
+         }
+ 
+         // Simulate a bot response
+         function simulateBotResponse() {
+             setTimeout(function () {
+                 addMessage('bot', 'Thank you for your message. We will respond shortly.');
+             }, 1000); // Simulate a delay
+         }
+    </script>
+</body>
+</html>

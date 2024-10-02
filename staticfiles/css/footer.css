@@ -1,0 +1,65 @@
+/* General footer styling */
+.footer {
+    background-color: #212529; /* Dark background color */
+    color: #f8f9fa; /* Light text color */
+    padding: 60px 0; /* Padding for top and bottom */
+}
+
+/* Footer links */
+.footer a {
+    color: #f8f9fa; /* Link color */
+    text-decoration: none; /* No underline */
+    transition: color 0.3s; /* Smooth color transition */
+}
+
+.footer a:hover {
+    color: #ffc107; /* Color on hover */
+}
+
+/* Footer logo */
+.footer .logo {
+    font-size: 24px; /* Logo font size */
+    font-weight: bold; /* Bold font weight */
+}
+
+/* Social media icons */
+.social-links a {
+    margin-right: 15px; /* Space between social icons */
+    font-size: 20px; /* Icon size */
+}
+
+/* Footer top section */
+.footer-top {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Bottom border */
+    padding-bottom: 30px; /* Padding bottom */
+}
+
+/* Footer links headings */
+.footer-links h4 {
+    font-size: 18px; /* Heading font size */
+    margin-bottom: 20px; /* Space below heading */
+    text-transform: uppercase; /* Uppercase heading */
+}
+
+/* Contact section */
+.footer-contact p {
+    margin-bottom: 10px; /* Space between contact details */
+}
+
+/* Copyright section */
+.copyright {
+    padding: 20px 0; /* Padding top and bottom */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .footer .footer-about,
+    .footer .footer-links,
+    .footer .footer-contact {
+        text-align: center; /* Center text on smaller screens */
+    }
+
+    .footer-links {
+        margin-top: 20px; /* Space between links and contact */
+    }
+}

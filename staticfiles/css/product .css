@@ -1,0 +1,47 @@
+/* products.css */
+
+/* Category container styling */
+.category-container {
+    border: 1px solid #ddd;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.category-header {
+    background-color: #17a2b8;
+    color: white;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card img {
+    height: 200px;
+    object-fit: cover;
+}
+
+.card h5 {
+    font-size: 1.2rem;
+}
+.compact-badge {
+    display: inline-block; /* Make the badge width fit the content */
+    font-size: 0.8rem; /* Optional: Adjust font size */
+    padding: 0.2em 0.4em; /* Adjust padding for a snug fit */
+    line-height: 1; /* Adjust line height */
+    min-width: 50px; /* Optional: Set a minimum width if needed */
+}
+
+
+.form-control, .form-select {
+    margin-bottom: 10px;
+}

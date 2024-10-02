@@ -1,0 +1,53 @@
+/* navbar.css */
+
+/* Body Styles */
+body {
+  background-color: #f8f9fa; /* Light background color */
+  color: #ffffff; /* Default text color */
+}
+
+/* Navbar Styles */
+.navbar {
+  background-color: rgba(17, 38, 70, 0.9);/* Transparent background */
+  box-shadow: 0 4px 8px rgba(228, 207, 207, 0.2); /* Box shadow */
+  transition: background-color 0.5s ease; /* Smooth transition for background */
+  padding-top: 10px; /* Adjust padding as needed */
+  padding-bottom: 10px; /* Adjust padding as needed */
+}
+
+.navbar.scrolled {
+  background-color: rgba(17, 38, 70, 0.9); /* Background when scrolled */
+}
+
+.nav-link {
+  color: #ffffff !important; /* White text color for nav links */
+}
+
+.nav-link:hover {
+  color: rgba(255, 255, 255, 0.8); /* Slightly lighter on hover */
+}
+
+/* Search form styles */
+.form-control {
+  background-color: rgba(255, 255, 255, 0.8); /* Slightly transparent search input */
+  border: none;
+}
+
+.form-control:focus {
+  background-color: rgba(255, 255, 255, 1); /* Solid background on focus */
+  box-shadow: none; /* Remove default focus shadow */
+}
+
+/* Centering Navbar Items */
+.navbar-nav {
+  flex-grow: 1; /* Allow nav links to take up space */
+  justify-content: center; /* Center the nav links */
+}
+
+.navbar-brand {
+  margin-right: auto; /* Push the brand to the left */
+}
+.btn{
+  background-color: rgba(180, 165, 247, 0.8);
+}
+

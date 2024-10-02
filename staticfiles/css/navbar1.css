@@ -1,0 +1,90 @@
+/* navbar.css */
+
+/* General Navbar Styling */
+.navbar {
+    background-color: rgba(17, 38, 70, 0.9);/* Transparent background */
+  box-shadow: 0 4px 8px rgba(228, 207, 207, 0.2); /* Box shadow */
+  transition: background-color 0.5s ease; /* Smooth transition for background */
+  padding-top: 10px; /* Adjust padding as needed */
+  padding-bottom: 10px; /* Adjust padding as needed */
+}
+
+.navbar.scrolled {
+    background-color: rgba(17, 38, 70, 0.9); /* Background when scrolled */
+}
+
+/* Brand logo styling */
+.navbar-brand h1 {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.navbar-brand .text-info {
+    color: #17a2b8 !important; /* Bootstrap info color */
+}
+
+/* Navbar link styling */
+.navbar-nav .nav-link {
+    color: #ffffff;
+    font-size: 1rem;
+    padding: 10px;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #17a2b8; /* Change color on hover */
+}
+
+/* Centering and spacing adjustments */
+.navbar-nav {
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.form-control {
+    border-radius: 0;
+}
+
+/* Button styling specific to navbar */
+.navbar .btn-primary {
+    background-color: #17a2b8; /* Use the info color for primary buttons */
+    border: none;
+}
+
+.navbar .btn-primary:hover {
+    background-color: #138496; /* Darker info color on hover */
+}
+
+.navbar .navbar-button {
+    background-color: transparent;
+    border: 1px solid #ffffff;
+    color: #ffffff;
+}
+
+.navbar .navbar-button:hover {
+    background-color: #ffffff;
+    color: #000;
+}
+
+/* Navbar search input styling */
+.navbar .form-control {
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0;
+}
+
+.navbar .input-group button {
+    background-color: #17a2b8;
+    border: none;
+}
+
+/* Adjusting the margin of search form */
+.navbar .form-group {
+    margin-top: 10px;
+}
+
+/* Adjust when screen size is smaller */
+@media (max-width: 768px) {
+    .navbar-nav {
+        text-align: center;
+    }
+}
