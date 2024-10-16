@@ -71,7 +71,9 @@ class Payment(models.Model):
 class ChatMessage(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
+    is_admin = models.BooleanField(default=False)  # True if the message is from the admin
+    reply_to = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)  # To link replies
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username}: {self.message[:20]}"
+        return f"Message from {self.user.username} at {self.timestamp}"

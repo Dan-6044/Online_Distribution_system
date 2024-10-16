@@ -35,25 +35,13 @@
                 <div class="col-md-3 pe-0"> <!-- Removed margin and adjusted class -->
                     <h4 class="text-dark">Filter Products</h4>
                     <div class="card p-3 filter-card"> <!-- Added custom class for width control -->
-                        <form method="GET" action="{% url 'products' %}" id="filterForm">
+                        <form method="GET" action="{% url 'products' user_id=request.user.id %}" id="filterForm">
                             <!-- Search by name or keyword -->
                             <div class="form-group mb-3">
                                 <label for="search">Search Products</label>
                                 <input type="text" name="search" id="search" class="form-control" placeholder="Search by name or keyword" value="{{ request.GET.search }}">
                             </div>
-                           <!-- Filter by category -->
-                            <div class="form-group mb-3">
-                                {% if not request.GET.search %}
-                                    <label for="category">Category</label>
-                                {% endif %}
-                                <select class="form-select" name="category" id="category">
-                                    <option value="">All Categories</option>
-                                    {% for category in categories %}
-                                        <option value="{{ category.id }}" {% if request.GET.category == category.id %}selected{% endif %}>{{ category.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-            
+                                      
                             <!-- Filter by price -->
                             <div class="form-group mb-3">
                                 <label for="price">Price Range</label>

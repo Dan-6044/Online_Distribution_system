@@ -147,8 +147,8 @@
                     const orderModal = bootstrap.Modal.getInstance(document.getElementById('orderModal'));
                     if (orderModal) orderModal.hide();
     
-                    // Redirect to the products page
-                    window.location.href = "{% url 'products' %}"; // Adjust to your products page URL
+                    
+                    window.location.reload(); // Adjust to your products page URL
                 } else {
                     alert('Error placing order: ' + data.error);
                 }

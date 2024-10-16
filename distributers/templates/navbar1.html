@@ -10,7 +10,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
 
-
     <!-- Custom Styles -->
     <link rel="stylesheet" href="{% static 'css/navbar1.css' %}">
 </head>
@@ -20,23 +19,21 @@
             <a class="navbar-brand" href="#">
                 <h1 class="text-white">Dist<span class="text-info">Sys .</span></h1>
             </a>
-            <button class=" navbar-button navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto"> <!-- Center the nav items -->
-                    
-                    <li class="nav-item"><a class="nav-link" href="{% url 'products' %}">Products</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
-                    <li class="nav-item"> <a class="nav-link" href="{% url 'cart' %}">Cart</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'products' user_id=request.user.id %}">Products</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' user_id=request.user.id %}">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'cart'%}">Cart</a></li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#profile" title="User Profile">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
                             <i class="bi bi-person-circle" style="font-size: 1rem;"></i> <!-- Bootstrap Icon for user -->
                         </a>
                     </li>
-                    
                 </ul>
-                <form class="d-flex" role="search" style="margin-top: 10px;" method="GET" action="{% url 'products' %}"> <!-- Adjust margin as needed -->
+                <form class="d-flex" role="search" style="margin-top: 10px;" method="GET" action="{% url 'products' user_id=request.user.id %}"> <!-- Adjust margin as needed -->
                     <div class="input-group">
                         <input type="text" name="search" id="search" class="form-control" placeholder="Search Products" value="{{ request.GET.search }}">
                         <button class="btn btn-primary navbar-button" type="submit">
@@ -50,7 +47,25 @@
             </div>
         </div>
     </nav>
-    
+
+    <!-- Profile Modal -->
+    <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="profileModalLabel">User Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Name:</strong> {{ user.username }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

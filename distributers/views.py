@@ -8,6 +8,7 @@ from django.contrib.auth import logout
 from django.views.decorators.csrf import csrf_exempt
 from .models import Order, OrderItem
 import json
+from .models import ChatMessage
 from decimal import Decimal
 
 def logout_view(request):
@@ -17,12 +18,18 @@ def logout_view(request):
 def home(request):
     return render(request, 'home.html')
 
-def dashboard(request):
+@login_required
+def dashboard(request, user_id=None):
+    # Ensure the logged-in user matches the user_id from the URL
+    if int(user_id) != request.user.id:
+        return render(request, 'error.html', {'message': 'You do not have permission to view this page.'})
+
     user = request.user
     # Use prefetch_related to fetch OrderItems associated with each Order
     orders = Order.objects.filter(user=user).prefetch_related('items')
     
     return render(request, 'dashboard.html', {'orders': orders})
+
 
 def register(request):
     if request.method == 'POST':
@@ -41,32 +48,40 @@ def register(request):
             return JsonResponse({'status': 'error', 'errors': errors}, status=400)
 
         # Create user and return success message
-        user = User.objects.create_user(username=username, email=email, password=password)
-        return JsonResponse({'status': 'success', 'user_id': user.id})  # Include the user ID in the response
+        User.objects.create_user(username=username, email=email, password=password)
+        return JsonResponse({'status': 'success'})  # Success response
 
     return JsonResponse({'status': 'error', 'errors': {'form': 'Invalid request'}}, status=400)
 
-
-
 def login(request):
-    
-    if request.method == "POST":
+    if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         
-        # Authenticate user
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
-            auth_login(request, user)  # Log the user in
-            messages.success(request, 'Login successful!')
-            return redirect(f'/products/?user_id={user.id}')  # Redirect to products page with user ID
+            auth_login(request, user)
+            return JsonResponse({
+                'status': 'success',
+                'user_id': user.id  # Include the user ID in the response
+            })
         else:
-            messages.error(request, 'Invalid username or password.')
+            return JsonResponse({
+                'status': 'error',
+                'errors': {'form': 'Invalid username or password'}
+            }, status=400)
+    
+    return render(request, 'login.html')
 
-    return render(request, 'login.html')  # Render the login page for GET requests
-def product_list(request):
-    # Fetch products and apply search and filtering
+
+
+@login_required
+def product_list(request, user_id):
+    # Get the user object from the user_id
+    user = get_object_or_404(User, id=user_id)
+
+    # Fetch products and categories
     products = Product.objects.all()
     categories = Category.objects.all()
 
@@ -91,13 +106,20 @@ def product_list(request):
     if rating_filter:
         products = products.filter(rating__gte=rating_filter)
 
+   
+
     context = {
         'products': products,
         'categories': categories,
         'star_range': range(1, 6),
+        'user': user,
+        
     }
     return render(request, 'products.html', context)
 
+
+
+@login_required
 def product_details(request, id):
     product = get_object_or_404(Product, id=id)
     related_products = product.category.products.exclude(id=product.id)[:4]  # Get related products excluding the current one
@@ -219,20 +241,34 @@ def complete_payment(request):
 
     return JsonResponse({'status': 'error', 'errors': 'Invalid request'})
 
-from .models import ChatMessage
-
-@login_required
-def get_chat_messages(request):
-    messages = ChatMessage.objects.filter(user=request.user).order_by('timestamp')
-    messages_data = [{"message": msg.message, "timestamp": msg.timestamp.strftime('%Y-%m-%d %H:%M:%S')} for msg in messages]
-    return JsonResponse({'messages': messages_data})
-
 @csrf_exempt
-@login_required
-def post_chat_message(request):
+def send_chat_message(request):
     if request.method == 'POST':
-        message = request.POST.get('message')
-        if message:
-            ChatMessage.objects.create(user=request.user, message=message)
-            return JsonResponse({'success': True})
-    return JsonResponse({'success': False, 'error': 'Invalid request'})
+        data = json.loads(request.body)
+        message = data.get('message')
+
+        # Save the user's message in the database
+        ChatMessage.objects.create(
+            user=request.user,
+            message=message,
+            is_admin=False
+        )
+
+        return JsonResponse({'status': 'success', 'message': 'Message sent successfully.'})
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
+def get_chat_messages(request):
+    # Fetch all messages for the logged-in user
+    user = request.user
+    messages = ChatMessage.objects.filter(user=user).order_by('timestamp')
+
+    message_list = []
+    for msg in messages:
+        message_list.append({
+            'message': msg.message,
+            'is_admin': msg.is_admin,
+            'timestamp': msg.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        })
+
+    return JsonResponse({'status': 'success', 'messages': message_list})

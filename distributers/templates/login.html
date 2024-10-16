@@ -39,63 +39,47 @@
                     </div>
                     <button type="submit" class="btn btn-primary">Login</button>
                 </form>
-                <p class="mt-3">Don't have an account? <a href="#" id="switchregister" data-bs-toggle="modal" data-bs-target="#registerModal">Register here</a></p>
-
+                <p class="mt-3">Don't have an account? <a href="#" id="switchToRegister">Sign up here</a></p>
             </div>
         </div>
     </div>
 </div>
+
 <script>
-    <script>
-        // Function to get CSRF token from the cookie
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    // Check if this cookie string begins with the desired name
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
+    // Handle login form submission
+    loginForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        var formData = new FormData(loginForm);
+
+        fetch('{% url "login" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Accept': 'application/json'
             }
-            return cookieValue;
-        }
-    
-        // Get CSRF token
-        const csrftoken = getCookie('csrftoken');
-    
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent default form submission
-            const formData = new FormData(this);
-        
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': csrftoken // Include CSRF token
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Redirect to the dashboard page with user ID
-                    window.location.href = `/products/${data.user_id}/`;
-                } else {
-                    // Display error messages
-                    const errorMessages = document.getElementById('loginErrorMessages');
-                    errorMessages.textContent = data.errors.form;
-                    errorMessages.classList.remove('d-none');
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'error') {
+                // Display login errors
+                loginErrorMessagesDiv.innerHTML = '';
+                for (var key in data.errors) {
+                    var errorMessage = data.errors[key];
+                    loginErrorMessagesDiv.innerHTML += '<p>' + errorMessage + '</p>';
                 }
-            })
-            .catch(error => console.error('Error:', error));
-        });
-    </script>
-    
-    
+                loginErrorMessagesDiv.classList.remove('d-none');
+            } else if (data.status === 'success') {
+                // Get the user ID from the response data
+                var userId = data.user_id;
+
+                // Redirect to the products page with the user ID as part of the URL path
+                window.location.href = `/products/${data.user_id}/`;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
 </script>
 
 

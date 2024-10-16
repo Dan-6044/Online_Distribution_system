@@ -17,22 +17,32 @@
 }
 
 .card {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    display: flex; /* Use flexbox to align image and body */
+    flex-direction: row; /* Horizontal alignment */
 }
+
+.card-img-left {
+    max-width: 150px; /* Fixed width for image */
+    object-fit: cover; /* Ensure images cover the space */
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column; /* Keep the text vertically aligned */
+    justify-content: space-between; /* Space between elements in card body */
+    padding: 15px; /* Adjust padding as needed */
+    width: calc(100% - 150px); /* Adjust width to make space for the image */
+}
+
+.card h5 {
+    font-size: 1.2rem; /* Adjust font size */
+}
+
 
 .card:hover {
     transform: translateY(-5px);
 }
 
-.card img {
-    height: 200px;
-    object-fit: cover;
-}
-
-.card h5 {
-    font-size: 1.2rem;
-}
 .compact-badge {
     display: inline-block; /* Make the badge width fit the content */
     font-size: 0.8rem; /* Optional: Adjust font size */

@@ -1,7 +1,14 @@
 from django.contrib import admin
 from .models import Product, Category
 from .models import Order, OrderItem, Payment
+from django.urls import path
+from django.contrib import admin
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect
+from django.template.response import TemplateResponse
 from django.utils.html import format_html
+from .models import ChatMessage
+from django.urls import reverse
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'category', 'price', 'stock', 'rating', 'product_image')
@@ -43,3 +50,52 @@ class CategoryAdmin(admin.ModelAdmin):
 
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Category, CategoryAdmin)
+
+
+class ChatMessageAdmin(admin.ModelAdmin):
+    list_display = ('user', 'message', 'is_admin', 'timestamp', 'reply_button')
+    readonly_fields = ('user', 'message', 'is_admin', 'timestamp')
+    list_filter = ('is_admin', 'user')
+
+    def get_urls(self):
+        # Get the default admin urls and add the custom reply URL
+        urls = super().get_urls()
+        custom_urls = [
+            path('reply/<int:chat_message_id>/', self.admin_site.admin_view(self.reply_to_user), name='reply-to-user'),
+        ]
+        return custom_urls + urls
+
+    def reply_button(self, obj):
+        if not obj.is_admin:  # Show the reply button only for user messages
+            # Create the absolute URL for the reply link
+            reply_url = reverse('admin:reply-to-user', args=[obj.id])
+            return format_html('<a class="button" href="{}">Reply</a>', reply_url)
+        return '-'
+
+    reply_button.short_description = 'Reply'
+
+    def reply_to_user(self, request, chat_message_id):
+        # Get the message to reply to
+        chat_message = get_object_or_404(ChatMessage, id=chat_message_id)
+
+        if request.method == 'POST':
+            admin_reply = request.POST.get('admin_reply')
+
+            # Create the admin's reply message
+            ChatMessage.objects.create(
+                user=chat_message.user,
+                message=admin_reply,
+                is_admin=True
+            )
+
+            self.message_user(request, f'Reply sent to {chat_message.user.username}')
+            return HttpResponseRedirect('/admin/distributers/chatmessage/')  # Redirect to the message list
+
+        context = dict(
+            self.admin_site.each_context(request),
+            chat_message=chat_message,
+        )
+        return TemplateResponse(request, "reply_to_user.html", context)
+
+# Register ChatMessage with the custom admin view
+admin.site.register(ChatMessage, ChatMessageAdmin)

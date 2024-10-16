@@ -1,3 +1,4 @@
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -12,10 +13,11 @@
     <!-- Custom Styles -->
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
 
+    <!-- Optional extra content for the head -->
+
 </head>
 <body>
-
-<!-- Register Modal -->
+<!-- register.html -->
 <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -47,6 +49,7 @@
     </div>
 </div>
 
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
@@ -76,12 +79,18 @@
                         errorMessagesDiv.innerHTML += '<p>' + errorMessage + '</p>';
                     }
                     errorMessagesDiv.classList.remove('d-none');
+
+                    // Clear the form fields
+                    registerForm.reset();
                 } else if (data.status === 'success') {
-                    // Hide the register modal
-                    registerModal.hide();
-                    
-                    // Redirect to the subscription page with the new user's ID
-                    window.location.href = `/products/?user_id=${data.user_id}`;
+                    // Refresh the page
+                    location.reload();
+
+                    // Use a small timeout to allow the page to refresh before showing the login modal
+                    setTimeout(function() {
+                        var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                        loginModal.show();
+                    }, 1000); // Adjust the timeout duration as needed
                 }
             })
             .catch(error => console.error('Error:', error));
@@ -89,8 +98,8 @@
     });
 </script>
 
-<!-- Bootstrap JS and Popper.js -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Optional extra JavaScript -->
 </body>
 </html>
