@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, Category
+from .models import Product, Category, ReturnItem
 from .models import Order, OrderItem, Payment
 from django.urls import path
 from django.contrib import admin
@@ -99,3 +99,20 @@ class ChatMessageAdmin(admin.ModelAdmin):
 
 # Register ChatMessage with the custom admin view
 admin.site.register(ChatMessage, ChatMessageAdmin)
+
+
+@admin.register(ReturnItem)
+class ReturnItemAdmin(admin.ModelAdmin):
+    list_display = ('order', 'item', 'reason', 'return_date')  # Fields to display in the list view
+    search_fields = ('order__id', 'item__product_name', 'reason')  # Enable searching by order ID, item name, and reason
+    list_filter = ('return_date',)  # Enable filtering by return date
+
+    # Optionally, you can customize the form layout, fieldsets, etc.
+    fieldsets = (
+        (None, {
+            'fields': ('order', 'item', 'reason')
+        }),
+        ('Return Information', {
+            'fields': ('return_date',)
+        }),
+    )

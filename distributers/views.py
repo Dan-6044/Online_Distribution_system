@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.views.decorators.csrf import csrf_exempt
-from .models import Order, OrderItem
+from .models import Order, OrderItem, ReturnItem
 import json
 from .models import ChatMessage
 from decimal import Decimal
@@ -222,10 +222,13 @@ def complete_payment(request):
         payment_method = request.POST.get('payment_method')
         amount = 99.0  # Set the amount according to your business logic
 
+        # Retrieve the order instance
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+
         # Create payment record
         payment = Payment.objects.create(
             user=request.user,
-            order_id=order_id,
+            order_id=order.id,
             amount=amount,
             payment_method=payment_method,
             mpesa_code=request.POST.get('mpesa_code') if payment_method == 'mpesa' else None,
@@ -234,8 +237,12 @@ def complete_payment(request):
             cvv=request.POST.get('cvv') if payment_method == 'card' else None,
             status='completed',  # Update to 'completed' after processing payment
         )
-        
-        # Add logic here for processing payment with actual payment gateway
+
+        # Mark the payment status on the order as completed
+        order.payment_status = True # Update order status to 'completed'
+        order.save()
+
+        # Add logic here for processing payment with the actual payment gateway
         # If payment succeeds, redirect user
         return JsonResponse({'status': 'success'})
 
@@ -272,3 +279,47 @@ def get_chat_messages(request):
         })
 
     return JsonResponse({'status': 'success', 'messages': message_list})
+
+def get_order_items(request, order_id):
+    try:
+        # Fetch the order with the given order_id
+        order = Order.objects.get(id=order_id)
+        # Get the related items for this order
+        items = order.items.all()  # Assuming the related name for OrderItem is 'items'
+
+        # Create a list of items with required details
+        item_list = [{'id': item.id, 'product_name': item.product_name, 'quantity': item.quantity} for item in items]
+
+        # Return a JSON response
+        return JsonResponse({'items': item_list})
+    except Order.DoesNotExist:
+        return JsonResponse({'error': 'Order not found'}, status=404)
+    
+def return_order(request):
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id')
+        item_id = request.POST.get('return_item')
+        return_reason = request.POST.get('return_reason')
+
+        # Get the order and the item to return
+        order = get_object_or_404(Order, id=order_id)
+        item = get_object_or_404(OrderItem, id=item_id)
+
+        # Mark the item as returned
+        item.return_status = True
+        item.save()
+
+        # Mark the order as returned if all items are returned
+        if all(item.return_status for item in order.items.all()):
+            order.return_status = True
+            order.save()
+
+        # Optionally, save the return details in another model (e.g., ReturnItem)
+        ReturnItem.objects.create(
+            order=order,
+            item=item,
+            reason=return_reason
+        )
+
+        # Redirect to the dashboard with the user ID
+        return redirect('dashboard', user_id=request.user.id)  # Use the logged-in user's ID

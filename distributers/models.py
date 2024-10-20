@@ -37,7 +37,9 @@ class Order(models.Model):
     phone = models.CharField(max_length=15)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     order_date = models.DateTimeField(auto_now_add=True)
-    payment_status = models.BooleanField(default=False)
+    delivery_status = models.BooleanField(default=False)
+    payment_status = models.BooleanField(default=False) 
+    
 
     def __str__(self):
         return f"Order #{self.id} by {self.user.username}"
@@ -47,7 +49,7 @@ class OrderItem(models.Model):
     product_name = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
-    delivery_status = models.BooleanField(default=False)
+    return_status = models.BooleanField(default=False) 
 
     def __str__(self):
         return f"{self.product_name} - {self.quantity} pcs"
@@ -77,3 +79,12 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.user.username} at {self.timestamp}"
+    
+class ReturnItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    item = models.ForeignKey(OrderItem, on_delete=models.CASCADE)
+    reason = models.TextField()
+    return_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Return of {self.item.product_name} from Order {self.order.id}"

@@ -95,6 +95,7 @@
                     <th>Phone</th>
                     <th>Total Amount</th>
                     <th>Payment Status</th>
+                    <th>Delivery Status</th>
                     <th>Order Items</th>
                     <th>Action</th>
                 </tr>
@@ -114,14 +115,21 @@
                             {% endif %}
                         </td>
                         <td>
+                            {% if order.delivery_status %}
+                               Delivered
+                             {% else %}
+                              Pending
+                            {% endif %}
+                        </td>
+                        <td>
                             <ul>
                                 {% for item in order.items.all %}
                                     <li>
                                         {{ item.product_name }} - {{ item.quantity }} pcs at {{ item.price }} - 
-                                        {% if item.delivery_status %}
-                                            Delivered
+                                        {% if item.return_status %}
+                                            Returned
                                         {% else %}
-                                            Pending
+                                            Not Returned
                                         {% endif %}
                                     </li>
                                 {% empty %}
@@ -137,6 +145,12 @@
                                     data-order-id="{{ order.id }}">
                                     Pay Now
                                 </button>
+                                <button type="button" class="btn btn-danger" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#returnModal" 
+                                data-order-id="{{ order.id }}">
+                                Return
+                            </button>
                             {% endif %}
                         </td>
                     </tr>
@@ -202,85 +216,158 @@
         </div>
     </div>
 
+    <!-- Return Modal -->
+    <div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="returnModalLabel">Return Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="returnForm" method="post" action="{% url 'return_order' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="order_id" id="return-order-id">
+                        
+                        <!-- Select Product to Return -->
+                        <div class="mb-3">
+                            <label for="return_item" class="form-label">Select Item to Return</label>
+                            <select class="form-select" name="return_item" id="return-item" required>
+                                <!-- Products will be populated dynamically -->
+                            </select>
+                        </div>
+
+                        <!-- Reason for Return -->
+                        <div class="mb-3">
+                            <label for="return_reason" class="form-label">Reason for Return</label>
+                            <textarea class="form-control" name="return_reason" id="return-reason" rows="3" required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger">Submit Return</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {% include 'chatbox.html' %}
 
   
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Event listener for showing the payment modal
-        var paymentModal = document.getElementById('paymentModal');
-        paymentModal.addEventListener('show.bs.modal', function (event) {
-            var button = event.relatedTarget; // Button that triggered the modal
-            var orderId = button.getAttribute('data-order-id'); // Extract order ID from data attribute
-            var orderIdInput = document.getElementById('order-id');
-            orderIdInput.value = orderId; // Set the order ID input value
+        document.addEventListener('DOMContentLoaded', function () {
+            // Event listener for showing the payment modal
+            var paymentModal = document.getElementById('paymentModal');
+            paymentModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget; // Button that triggered the modal
+                var orderId = button.getAttribute('data-order-id'); // Extract order ID from data attribute
+                var orderIdInput = document.getElementById('order-id');
+                orderIdInput.value = orderId; // Set the order ID input value
     
-            // Reset visibility of inputs
-            document.getElementById('card-details').classList.add('d-none');
-            document.getElementById('mpesa-details').classList.add('d-none');
-
-            // Clear any previous error messages
-            var errorMessagesDiv = document.getElementById('error-messages');
-            errorMessagesDiv.innerHTML = ''; 
-            errorMessagesDiv.classList.add('d-none'); 
-        });
+                // Reset visibility of inputs
+                document.getElementById('card-details').classList.add('d-none');
+                document.getElementById('mpesa-details').classList.add('d-none');
     
-        // Event listener for changing payment method
-        document.getElementById('payment-method').addEventListener('change', function () {
-            var selectedValue = this.value; // Get the selected payment method
-            if (selectedValue === 'card') {
-                document.getElementById('card-details').classList.remove('d-none'); // Show card details
-                document.getElementById('mpesa-details').classList.add('d-none'); // Hide M-Pesa details
-            } else if (selectedValue === 'mpesa') {
-                document.getElementById('mpesa-details').classList.remove('d-none'); // Show M-Pesa details
-                document.getElementById('card-details').classList.add('d-none'); // Hide card details
-            } else {
-                document.getElementById('card-details').classList.add('d-none'); // Hide card details
-                document.getElementById('mpesa-details').classList.add('d-none'); // Hide M-Pesa details
-            }
-        });
+                // Clear any previous error messages
+                var errorMessagesDiv = document.getElementById('error-messages');
+                errorMessagesDiv.innerHTML = ''; 
+                errorMessagesDiv.classList.add('d-none'); 
+            });
     
-        // AJAX form submission
-        document.getElementById('paymentForm').addEventListener('submit', function (event) {
-            event.preventDefault(); // Prevent the default form submission
-    
-            var formData = new FormData(this); // Create FormData object from the form
-            var errorMessagesDiv = document.getElementById('error-messages'); // Div to display errors
-            errorMessagesDiv.innerHTML = ''; // Clear previous error messages
-            errorMessagesDiv.classList.add('d-none'); // Hide error messages initially
-    
-            // Send the form data using fetch API
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest' // Indicate that the request is AJAX
+            // Event listener for changing payment method
+            document.getElementById('payment-method').addEventListener('change', function () {
+                var selectedValue = this.value; // Get the selected payment method
+                if (selectedValue === 'card') {
+                    document.getElementById('card-details').classList.remove('d-none'); // Show card details
+                    document.getElementById('mpesa-details').classList.add('d-none'); // Hide M-Pesa details
+                } else if (selectedValue === 'mpesa') {
+                    document.getElementById('mpesa-details').classList.remove('d-none'); // Show M-Pesa details
+                    document.getElementById('card-details').classList.add('d-none'); // Hide card details
+                } else {
+                    document.getElementById('card-details').classList.add('d-none'); // Hide card details
+                    document.getElementById('mpesa-details').classList.add('d-none'); // Hide M-Pesa details
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'error') {
-                    // Show errors if there are any
-                    errorMessagesDiv.innerHTML = ''; // Clear previous messages
-                    for (var key in data.errors) {
-                        var errorMessage = data.errors[key];
-                        errorMessagesDiv.innerHTML += '<p>' + errorMessage + '</p>'; // Append error messages
+            });
+    
+            // AJAX form submission for payment
+            document.getElementById('paymentForm').addEventListener('submit', function (event) {
+                event.preventDefault(); // Prevent the default form submission
+    
+                var formData = new FormData(this); // Create FormData object from the form
+                var errorMessagesDiv = document.getElementById('error-messages'); // Div to display errors
+                errorMessagesDiv.innerHTML = ''; // Clear previous error messages
+                errorMessagesDiv.classList.add('d-none'); // Hide error messages initially
+    
+                // Send the form data using fetch API
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest' // Indicate that the request is AJAX
                     }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'error') {
+                        // Show errors if there are any
+                        errorMessagesDiv.innerHTML = ''; // Clear previous messages
+                        for (var key in data.errors) {
+                            var errorMessage = data.errors[key];
+                            errorMessagesDiv.innerHTML += '<p>' + errorMessage + '</p>'; // Append error messages
+                        }
+                        errorMessagesDiv.classList.remove('d-none'); // Show the error messages div
+                    } else if (data.status === 'success') {
+                        // Close modal and reload the page upon success
+                        var modal = bootstrap.Modal.getInstance(paymentModal); // Get modal instance
+                        modal.hide(); // Close modal
+                        location.reload(); // Reload the page to update payment status
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    errorMessagesDiv.innerHTML = '<p>An unexpected error occurred. Please try again.</p>'; // Display generic error
                     errorMessagesDiv.classList.remove('d-none'); // Show the error messages div
-                } else if (data.status === 'success') {
-                    // Close modal and reload the page upon success
-                    var modal = bootstrap.Modal.getInstance(paymentModal); // Get modal instance
-                    modal.hide(); // Close modal
-                    location.reload(); // Reload the page to update payment status
+                });
+            });
+    
+            // Event listener for showing the return modal
+            var returnModal = document.getElementById('returnModal');
+            var fetchingItems = false; // Flag to prevent duplicate fetches
+    
+            returnModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget; // Button that triggered the modal
+                var orderId = button.getAttribute('data-order-id'); // Extract order ID
+                var orderInput = returnModal.querySelector('#return-order-id');
+                orderInput.value = orderId; // Set the order ID in the hidden input
+    
+                // Populate items for return
+                var returnItemSelect = returnModal.querySelector('#return-item');
+                returnItemSelect.innerHTML = ''; // Clear previous options
+    
+                // Only fetch items if we're not already fetching
+                if (!fetchingItems) {
+                    fetchingItems = true; // Set the flag to indicate fetching is in progress
+                    fetch(`/api/get_order_items/${orderId}/`) // Use template literals for URL
+                        .then(response => response.json())
+                        .then(data => {
+                            // Check if items are returned
+                            if (data.items && Array.isArray(data.items)) {
+                                data.items.forEach(item => {
+                                    var option = document.createElement('option');
+                                    option.value = item.id;
+                                    option.textContent = `${item.product_name} - ${item.quantity} pcs`; // Use template literals
+                                    returnItemSelect.appendChild(option); // Add to the select
+                                });
+                            }
+                        })
+                        .catch(error => console.error('Error fetching items:', error))
+                        .finally(() => {
+                            fetchingItems = false; // Reset the flag once done
+                        });
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                errorMessagesDiv.innerHTML = '<p>An unexpected error occurred. Please try again.</p>'; // Display generic error
-                errorMessagesDiv.classList.remove('d-none'); // Show the error messages div
             });
         });
- </script>
+    </script>
+    
 </body>
 </html>
